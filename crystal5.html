@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>날씨 조회 앱</title>
+
+  <style>
+    /* 전체 화면 설정 */
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      color: #173b73;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      /* 배경 기본 색 */
+      background-color: #eaf4ff;
+
+      /* 꽃모양 패턴 배경 */
+      background-image:
+        radial-gradient(circle at 20px 20px, #ffd6e7 8px, transparent 9px),
+        radial-gradient(circle at 40px 20px, #ffd6e7 8px, transparent 9px),
+        radial-gradient(circle at 30px 10px, #ffd6e7 8px, transparent 9px),
+        radial-gradient(circle at 30px 30px, #ffd6e7 8px, transparent 9px),
+        radial-gradient(circle at 30px 20px, #fff4a3 6px, transparent 7px);
+
+      /* 패턴 크기 */
+      background-size: 80px 80px;
+    }
+
+    /* 가운데 카드 박스 */
+    .card {
+      width: 380px;
+      padding: 30px;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    /* 입력창 */
+    input {
+      width: 75%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #9bc5ff;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #0057d9;
+    }
+
+    /* 버튼 */
+    button {
+      margin-top: 15px;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
+      background-color: #0057d9;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #003f9e;
+    }
+
+    /* 결과 출력 영역 */
+    #weatherResult {
+      margin-top: 25px;
+      padding: 15px;
+      background-color: #f2f8ff;
+      border-radius: 15px;
+      font-size: 17px;
+      line-height: 1.7;
+      display: none;
+    }
+
+    /* 에러 메시지 */
+    .error {
+      color: #d93636;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>날씨 조회</h1>
+
+    <!-- 도시 이름 입력 -->
+    <input type="text" id="cityInput" placeholder="도시 이름 입력 예: Seoul">
+
+    <br>
+
+    <!-- 버튼 클릭 시 searchWeather 함수 실행 -->
+    <button onclick="searchWeather()">날씨 보기</button>
+
+    <!-- 날씨 결과가 표시될 곳 -->
+    <div id="weatherResult"></div>
+  </div>
+
+  <script>
+    /*
+      여기에 본인의 OpenWeatherMap API 키를 넣으면 됩니다.
+    */
+    const API_KEY = "f738d53ea69e7fdd825364d81d17af21";
+
+    /* 버튼을 눌렀을 때 실행되는 함수 */
+    function searchWeather() {
+      const city = document.getElementById("cityInput").value.trim();
+
+      if (city === "") {
+        alert("도시 이름을 입력해주세요!");
+        return;
+      }
+
+      getWeather(city);
+    }
+
+    /* 도시 이름을 받아 날씨 정보를 가져오는 함수 */
+    async function getWeather(city) {
+      const resultBox = document.getElementById("weatherResult");
+
+      try {
+        resultBox.style.display = "block";
+        resultBox.className = "";
+        resultBox.innerHTML = "날씨 정보를 불러오는 중...";
+
+        const url =
+          "https://api.openweathermap.org/data/2.5/weather" +
+          "?q=" + encodeURIComponent(city) +
+          "&appid=" + API_KEY +
+          "&units=metric" +
+          "&lang=kr";
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error("날씨 정보를 가져오지 못했습니다.");
+        }
+
+        const data = await response.json();
+
+        const cityName = data.name;
+        const temp = data.main.temp;
+        const feelsLike = data.main.feels_like;
+        const weather = data.weather[0].description;
+        const humidity = data.main.humidity;
+        const windSpeed = data.wind.speed;
+
+        resultBox.innerHTML = `
+          <strong>${cityName}의 날씨</strong><br>
+          날씨: ${weather}<br>
+          현재 온도: ${temp}℃<br>
+          체감 온도: ${feelsLike}℃<br>
+          습도: ${humidity}%<br>
+          풍속: ${windSpeed}m/s
+        `;
+
+      } catch (error) {
+        resultBox.style.display = "block";
+        resultBox.className = "error";
+        resultBox.innerHTML =
+          "오류가 발생했습니다.<br>도시 이름이나 API 키를 확인해주세요.";
+      }
+    }
+  </script>
+
+</body>
+</html>
